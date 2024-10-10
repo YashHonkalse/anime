@@ -1,33 +1,31 @@
 const express = require('express');
-const path = require('path');
-const mysql = require('mysql2');
+const mysql = require('mysql');
+const cors = require('cors');
 const app = express();
-const PORT = 3000;
+const port = 3000;
 
-// Database connection configuration
+// Enable CORS
+app.use(cors());
+
+// Database connection
 const db = mysql.createConnection({
-    host: 'must-watch-anime.c7eeki0amd7u.ap-south-1.rds.amazonaws.com', // Replace with your RDS endpoint
-    user: 'admin', // Replace with your RDS username
-    password: 'EdMuNd123456', // Replace with your RDS password
-    database: 'animedb' // Replace with your RDS database name
+    host: 'must-watch-anime.c7eeki0amd7u.ap-south-1.rds.amazonaws.com',  // Replace with your RDS endpoint
+    user: 'admin',   // Replace with your database username
+    password: 'EdMuNd123456', // Replace with your database password
+    database: 'animedb'     // Replace with your database name
 });
 
 // Connect to the database
-db.connect((err) => {
+db.connect(err => {
     if (err) {
-        console.error('Database connection failed: ' + err.stack);
+        console.error('Database connection error: ' + err);
         return;
     }
-    console.log('Connected to database.');
+    console.log('Connected to the database.');
 });
 
-// Serve static files from the public directory
-app.use(express.static(path.join(__dirname, 'public')));
-
-// Serve the homepage
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+// Serve static files (e.g., CSS)
+app.use(express.static('public'));
 
 // API endpoint to fetch anime data from the database
 app.get('/api/anime', (req, res) => {
@@ -42,7 +40,7 @@ app.get('/api/anime', (req, res) => {
 });
 
 // Start the server
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+app.listen(port, () => {
+    console.log(`Server running on http://localhost:${port}`);
 });
 

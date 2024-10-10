@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
     <title>Must Watch Anime</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <h1>Must Watch Anime</h1>
@@ -17,7 +17,12 @@
                 const animeList = document.getElementById('anime-list');
                 data.forEach(anime => {
                     const animeItem = document.createElement('div');
-                    animeItem.innerHTML = `<h2>${anime.title}</h2><p>Genre: ${anime.genre}</p><p>Description: ${anime.description}</p>`;
+                    animeItem.innerHTML = `
+                        <h2>${anime.title}</h2>
+                        <p>Genre: ${anime.genre}</p>
+                        <p>Description: ${anime.description}</p>
+                        <img src="${anime.image_url}" alt="${anime.title}" style="max-width: 200px; height: auto;">
+                    `;
                     animeList.appendChild(animeItem);
                 });
             })
