@@ -17,11 +17,12 @@
                 const animeList = document.getElementById('anime-list');
                 data.forEach(anime => {
                     const animeItem = document.createElement('div');
+                    animeItem.className = 'anime-item';
                     animeItem.innerHTML = `
                         <h2>${anime.title}</h2>
-                        <p>Genre: ${anime.genre}</p>
-                        <p>Description: ${anime.description}</p>
-                        <img src="${anime.image_url}" alt="${anime.title}" style="max-width: 200px; height: auto;">
+                        <p><strong>Genre:</strong> ${anime.genre}</p>
+                        <p>${anime.description}</p>
+                        <img src="${anime.image_url}" alt="${anime.title}" style="width: 200px; height: auto;">
                     `;
                     animeList.appendChild(animeItem);
                 });
