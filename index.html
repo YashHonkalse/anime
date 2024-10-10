@@ -1,37 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Must Watch Anime</title>
-  <link rel="stylesheet" href="styles.css"> <!-- Linking to the stylesheet -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Must Watch Anime</title>
 </head>
 <body>
-  <h1>Must Watch Anime</h1>
+    <h1>Must Watch Anime</h1>
+    <div id="anime-list"></div>
 
-  <ul id="anime-list">
-    <li>One Piece</li>
-    <li>Monster</li>
-    <li>Clannad</li>
-    <li>Oregairu</li>
-    <li>Rurouni Kenshin</li>
-    <li>Haikyuu</li>
-    <li>Hajime no Ippo</li>
-    <li>Bakuman</li>
-    <li>Wagnaria</li>
-    <li>ReZero</li>
-    <li>Baby Steps</li>
-    <li>Nodame Cantabile</li>
-    <li>Zatch Bell</li>
-    <li>Tsukimichi</li>
-    <li>Wolf And Spices</li>
-    <li>Classroom of the Elite</li>
-    <li>Hell's Paradise</li>
-    <li>Vinland Saga</li>
-    <li>Rascal Does Not Dream of Bunny Girl Senpai</li>
-  </ul>
-
-  <!-- Optional: Add more styling or scripting here -->
+    <script>
+        fetch('/api/anime')
+            .then(response => response.json())
+            .then(data => {
+                const animeList = document.getElementById('anime-list');
+                data.forEach(anime => {
+                    const animeItem = document.createElement('div');
+                    animeItem.innerHTML = `<h2>${anime.title}</h2><p>Genre: ${anime.genre}</p><p>Description: ${anime.description}</p>`;
+                    animeList.appendChild(animeItem);
+                });
+            })
+            .catch(error => console.error('Error fetching anime data:', error));
+    </script>
 </body>
 </html>
 
