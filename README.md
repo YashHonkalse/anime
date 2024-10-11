@@ -28,5 +28,7 @@ Cloud_computing_assignment
 - Created an autoscaling Group for scaling of instances in case of increase in traffic
 - Set the sfcaling from minimum to 1 and maximum to 2
 - Using the metric of CPU usage that scales instances if cpu usage is greater than 70%
-- Created
+- Enabled HTTPS using certbot and nginx ( cant use AWS ACM as it requires Load balancer or Cloudfront that cost a significant amount to run 24*7
+- Hosted my application on domain 221bbks.xyz and enabled https using certbot.
+- Check my website at mustwatchanime.221bbks.xyz
 
