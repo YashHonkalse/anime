@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        AWS_REGION = 'us-east-1a'
+        AWS_REGION = 'us-east-1'
         REPO_NAME = 'anime'
         ACCOUNT_ID = '971422685558'
         ECR_URL = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}"
