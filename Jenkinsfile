@@ -1,29 +1,50 @@
-
 pipeline {
     agent any
 
     environment {
         AWS_REGION = 'us-east-1a'
         REPO_NAME = 'anime'
-        ACCOUNT_ID = '971422685558' // 
+        ACCOUNT_ID = '971422685558'
         ECR_URL = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}"
         CONTAINER_NAME = "must-watch-anime"
     }
 
-    options {
-        skipDefaultCheckout()
-    }
-
     stages {
         stage('Checkout') {
-            when {
-                branch 'main'  // 👈 Only run on 'main' branch
-            }
             steps {
                 checkout scm
+            }
+        }
+
+        stage('Get Branch Name') {
+            steps {
+                script {
+                    def branchName = sh(
+                        script: '''
+                        git branch --remote --contains HEAD | grep -Eo 'origin/[^ ]+' | head -1 | sed 's|origin/||'
+                        ''',
+                        returnStdout: true
+                    ).trim()
+
+                    if (!branchName) {
+                        branchName = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    }
+
+                    env.BRANCH_NAME = branchName
+                    echo "Branch: ${env.BRANCH_NAME}"
+                }
+            }
+        }
+
+        stage('Get Commit Hash') {
+            when {
+                expression { env.BRANCH_NAME == 'main' }
+            }
+            steps {
                 script {
                     COMMIT_HASH = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
                     IMAGE_TAG = COMMIT_HASH
+                    env.IMAGE_TAG = IMAGE_TAG
                     echo "Commit Hash: ${COMMIT_HASH}"
                 }
             }
@@ -31,7 +52,7 @@ pipeline {
 
         stage('Login to ECR') {
             when {
-                branch 'main'
+                expression { env.BRANCH_NAME == 'main' }
             }
             steps {
                 sh """
@@ -42,25 +63,25 @@ pipeline {
 
         stage('Build Docker Image') {
             when {
-                branch 'main'
+                expression { env.BRANCH_NAME == 'main' }
             }
             steps {
-                echo "Building image tagged with commit: ${IMAGE_TAG} and latest"
+                echo "Building image tagged with commit: ${env.IMAGE_TAG} and latest"
                 sh """
-                    docker build -t ${REPO_NAME}:${IMAGE_TAG} .
-                    docker tag ${REPO_NAME}:${IMAGE_TAG} ${ECR_URL}:${IMAGE_TAG}
-                    docker tag ${REPO_NAME}:${IMAGE_TAG} ${ECR_URL}:latest
+                    docker build -t ${REPO_NAME}:${env.IMAGE_TAG} .
+                    docker tag ${REPO_NAME}:${env.IMAGE_TAG} ${ECR_URL}:${env.IMAGE_TAG}
+                    docker tag ${REPO_NAME}:${env.IMAGE_TAG} ${ECR_URL}:latest
                 """
             }
         }
 
         stage('Push to ECR') {
             when {
-                branch 'main'
+                expression { env.BRANCH_NAME == 'main' }
             }
             steps {
                 sh """
-                    docker push ${ECR_URL}:${IMAGE_TAG}
+                    docker push ${ECR_URL}:${env.IMAGE_TAG}
                     docker push ${ECR_URL}:latest
                 """
             }
@@ -68,7 +89,7 @@ pipeline {
 
         stage('Deploy Container') {
             when {
-                branch 'main'
+                expression { env.BRANCH_NAME == 'main' }
             }
             steps {
                 sh """
@@ -81,7 +102,7 @@ pipeline {
 
         stage('Test Site') {
             when {
-                branch 'main'
+                expression { env.BRANCH_NAME == 'main' }
             }
             steps {
                 script {
