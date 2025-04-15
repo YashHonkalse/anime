@@ -42,10 +42,9 @@ pipeline {
             }
             steps {
                 script {
-                    COMMIT_HASH = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    IMAGE_TAG = COMMIT_HASH
-                    env.IMAGE_TAG = IMAGE_TAG
-                    echo "Commit Hash: ${COMMIT_HASH}"
+                    def hash = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.IMAGE_TAG = hash
+                    echo "Commit Hash: ${env.IMAGE_TAG}"
                 }
             }
         }
@@ -66,11 +65,10 @@ pipeline {
                 expression { env.BRANCH_NAME == 'main' }
             }
             steps {
-                echo "Building image tagged with commit: ${env.IMAGE_TAG} and latest"
+                echo "Building image with tag: ${env.IMAGE_TAG}"
                 sh """
                     docker build -t ${REPO_NAME}:${env.IMAGE_TAG} .
                     docker tag ${REPO_NAME}:${env.IMAGE_TAG} ${ECR_URL}:${env.IMAGE_TAG}
-                    docker tag ${REPO_NAME}:${env.IMAGE_TAG} ${ECR_URL}:latest
                 """
             }
         }
@@ -80,10 +78,7 @@ pipeline {
                 expression { env.BRANCH_NAME == 'main' }
             }
             steps {
-                sh """
-                    docker push ${ECR_URL}:${env.IMAGE_TAG}
-                    docker push ${ECR_URL}:latest
-                """
+                sh "docker push ${ECR_URL}:${env.IMAGE_TAG}"
             }
         }
 
@@ -95,7 +90,7 @@ pipeline {
                 sh """
                     docker stop ${CONTAINER_NAME} || true
                     docker rm ${CONTAINER_NAME} || true
-                    docker run -d -p 3000:3000 --name ${CONTAINER_NAME} ${ECR_URL}:latest
+                    docker run -d -p 3000:3000 --name ${CONTAINER_NAME} ${ECR_URL}:${env.IMAGE_TAG}
                 """
             }
         }
@@ -123,8 +118,8 @@ pipeline {
         always {
             echo '🧹 Cleaning up...'
             sh '''
-                docker image prune -af
                 docker container prune -f
+                docker image prune -af
                 docker system prune -f
                 rm -rf *
             '''
