@@ -42,9 +42,9 @@ pipeline {
             }
             steps {
                 script {
-                    def hash = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
-                    env.IMAGE_TAG = hash
-                    echo "Commit Hash: ${env.IMAGE_TAG}"
+                    COMMIT_HASH = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.IMAGE_TAG = COMMIT_HASH
+                    echo "Commit Hash: ${COMMIT_HASH}"
                 }
             }
         }
@@ -65,7 +65,7 @@ pipeline {
                 expression { env.BRANCH_NAME == 'main' }
             }
             steps {
-                echo "Building image with tag: ${env.IMAGE_TAG}"
+                echo "Building image tagged with commit: ${env.IMAGE_TAG}"
                 sh """
                     docker build -t ${REPO_NAME}:${env.IMAGE_TAG} .
                     docker tag ${REPO_NAME}:${env.IMAGE_TAG} ${ECR_URL}:${env.IMAGE_TAG}
@@ -78,7 +78,9 @@ pipeline {
                 expression { env.BRANCH_NAME == 'main' }
             }
             steps {
-                sh "docker push ${ECR_URL}:${env.IMAGE_TAG}"
+                sh """
+                    docker push ${ECR_URL}:${env.IMAGE_TAG}
+                """
             }
         }
 
@@ -116,11 +118,10 @@ pipeline {
 
     post {
         always {
-            echo '🧹 Cleaning up...'
+            echo '🧹 Cleaning up unused images and workspace...'
             sh '''
-                docker container prune -f
-                docker image prune -af
-                docker system prune -f
+                docker image prune -af || true
+                docker system prune -f || true
                 rm -rf *
             '''
         }
@@ -128,7 +129,20 @@ pipeline {
             echo "✅ Pipeline completed successfully!"
         }
         failure {
-            echo "❌ Pipeline failed. Check logs above."
+            echo "❌ Pipeline failed. Showing container logs and removing it..."
+            script {
+                try {
+                    sh '''
+                        echo "📄 Container logs:"
+                        docker logs ${CONTAINER_NAME} || echo "No logs available."
+                        echo "🛑 Removing failed container..."
+                        docker stop ${CONTAINER_NAME} || true
+                        docker rm ${CONTAINER_NAME} || true
+                    '''
+                } catch (Exception e) {
+                    echo "⚠️ Error retrieving or deleting failed container: ${e.getMessage()}"
+                }
+            }
         }
     }
 }
