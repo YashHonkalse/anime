@@ -33,10 +33,10 @@ async function initializeDbConnection() {
     try {
         const credentials = await getDbCredentials();
         const dbConfig = {
-            host: credentials.host,
-            user: credentials.username,
-            password: credentials.password,
-            database: credentials.database
+            host: must-watch-anime-db.cf8u4ugo4i4i.us-east-1.rds.amazonaws.com,
+            user: anime,
+            password: EdMuNd123456,
+            database: animedb
         };
 
         // Log the resolved DB config
