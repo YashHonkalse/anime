@@ -4,7 +4,9 @@ const AWS = require('aws-sdk');
 const app = express();
 const port = 3000;
 
-// Set up AWS SDK
+// Set up AWS SDK with region
+AWS.config.update({ region: 'us-east-1' });  // Set your region here
+
 const secretsManager = new AWS.SecretsManager();
 
 // Function to retrieve credentials from Secrets Manager
