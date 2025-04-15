@@ -38,6 +38,20 @@ async function initializeDbConnection() {
             database: credentials.database
         };
 
+        // Log the resolved DB config
+        console.log("Resolved DB config:", dbConfig);
+
+        // Test DB connection here to verify the host and port are correct
+        const testDbConnection = mysql.createConnection(dbConfig);
+        testDbConnection.connect((err) => {
+            if (err) {
+                console.error("Error during DB test connection:", err);
+            } else {
+                console.log("Test DB connection successful.");
+            }
+            testDbConnection.end();
+        });
+
         // Initialize MySQL connection with the fetched credentials
         db = mysql.createConnection(dbConfig);
         db.connect((err) => {
