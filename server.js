@@ -34,7 +34,7 @@ async function initializeDbConnection() {
         const credentials = await getDbCredentials();
         const dbConfig = {
             host: "must-watch-anime-db.cf8u4ugo4i4i.us-east-1.rds.amazonaws.com",
-            user: "anime",
+            user: "admin",
             password: "EdMuNd123456",
             database: "animedb"
         };
