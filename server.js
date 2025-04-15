@@ -9,7 +9,9 @@ AWS.config.update({ region: 'us-east-1' });  // Set your region here
 
 const secretsManager = new AWS.SecretsManager();
 
-// Function to retrieve credentials from Secrets Manager
+// Global db variable to store the database connection
+let db;
+
 async function getDbCredentials() {
     const secretName = "must-watch-anime-db-creds"; // The name of your secret in Secrets Manager
     try {
@@ -26,12 +28,11 @@ async function getDbCredentials() {
     }
 }
 
-// Fetch the credentials asynchronously
-let dbConfig;
+// Function to initialize the database connection
 async function initializeDbConnection() {
     try {
         const credentials = await getDbCredentials();
-        dbConfig = {
+        const dbConfig = {
             host: credentials.host,
             user: credentials.username,
             password: credentials.password,
@@ -41,23 +42,14 @@ async function initializeDbConnection() {
         // Log the resolved DB config
         console.log("Resolved DB config:", dbConfig);
 
-        // Test DB connection here to verify the host and port are correct
-        const testDbConnection = mysql.createConnection(dbConfig);
-        testDbConnection.connect((err) => {
-            if (err) {
-                console.error("Error during DB test connection:", err);
-            } else {
-                console.log("Test DB connection successful.");
-            }
-            testDbConnection.end();
-        });
-
         // Initialize MySQL connection with the fetched credentials
         db = mysql.createConnection(dbConfig);
+
+        // Test DB connection
         db.connect((err) => {
             if (err) {
                 console.error("Error connecting to the database:", err);
-                setTimeout(initializeDbConnection, 5000);  // Retry if connection fails
+                setTimeout(initializeDbConnection, 5000);  // Retry after 5 seconds if connection fails
             } else {
                 console.log("Connected to the database.");
             }
@@ -68,7 +60,7 @@ async function initializeDbConnection() {
     }
 }
 
-// Call the initialization function before starting the server
+// Initialize the DB connection before starting the server
 initializeDbConnection().then(() => {
     // Define your API and other routes
     app.get('/', (req, res) => {
@@ -76,6 +68,10 @@ initializeDbConnection().then(() => {
     });
 
     app.get('/api/anime', (req, res) => {
+        if (!db) {
+            return res.status(500).send('Database connection not established');
+        }
+
         const query = 'SELECT * FROM anime';
         db.query(query, (err, results) => {
             if (err) {
